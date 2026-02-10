@@ -1,0 +1,1 @@
+* also implement an explore mode, where you can go down a sequence of moves and at each turn it shows you all the opponent moves you have seen

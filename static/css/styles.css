@@ -1,0 +1,127 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+
+    color: white;
+
+    background-color: var(--verydarkblue);
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+    width: 100vw;
+}
+
+.sidebar {
+    flex: 1;
+
+    padding-left: 10px;
+    padding-top: 10px;
+}
+
+.sidebaritem {
+    margin: 5px;
+    padding: 5px;
+
+    height: 20px;
+
+    background-color: var(--darkblue);
+
+    border-radius: 15px;
+    border: 1px;
+    border-color: var(--softblue);
+    border-style: solid;
+
+    font-size: 15px;
+    text-align: center;
+}
+
+.main-content-area {
+    flex: 4;
+
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-right: 10px;
+
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-right: 10px;
+
+    background-color: var(--darkblue);
+
+    border-radius: 15px;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-right: 10px;
+    
+    padding-left: 10px;
+    padding-top: 10px;
+    padding-right: 10px;
+
+    background-color: var(--deepblue);
+
+    border-radius: 15px;
+}
+
+.information-row {
+    display: flex;
+
+    width: 100%;
+    gap: 10px;
+    height: 30px;
+}
+
+.info-text {
+    flex: 4;
+}
+
+.info-color {
+    flex: 2;
+}
+
+.info-moves {
+    flex: 6;
+}
+
+.input-row {
+    display: flex;
+
+    width: 100%;
+    gap: 10px;
+    height: 30px;
+}
+
+.input {
+    flex: 8;
+
+    height: 25px;
+
+    box-sizing: border-box;
+    border-radius: 15px;
+}
+
+.selector {
+    flex: 1;
+
+    height: 25px;
+
+    box-sizing: border-box;
+    border-radius: 15px;
+}
+
+.save-button, .check-button {
+    flex: 1;
+
+    height: 25px;
+
+    box-sizing: border-box;
+    border-radius: 15px;
+}
