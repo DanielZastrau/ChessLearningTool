@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import time
 
 from flask import Flask, render_template, request, jsonify
 import chess
@@ -33,6 +34,8 @@ def save_repertoire(data, color):
 # Initialize global variable immediately
 repertoire_white = load_repertoire('white')
 repertoire_black = load_repertoire('black')
+last_load = time.time()
+
 
 def add_line_to_repertoire(move_list: list, color: str = 'white'):
 
@@ -80,7 +83,29 @@ def get_random_line(tree_node):
     return line
 
 
+def get_next_move(moves: str, color: str):
+
+    moves = moves.split(' ')
+
+    if color == 'White':
+        current_node = repertoire_white
+
+    elif color == 'Black':
+        current_node = repertoire_black
+
+    for move in moves:
+
+        if move in current_node:
+            current_node = current_node[move]
+
+        else:
+            break
+
+    return list(current_node.keys())
+
+
 # Routes
+
 
 @app.route('/')
 def index():
@@ -129,8 +154,16 @@ def save_line():
         'line': ' '.join(formatted_line) 
     })
 
+
 @app.route('/get_move_sequence', methods=['GET'])
 def get_move_sequence():
+
+    global last_load, repertoire_black, repertoire_white
+
+    if time.time() - last_load > 300:
+        repertoire_white = load_repertoire('white')
+        repertoire_black = load_repertoire('black')
+        last_load = time.time()
 
     if random.random() < 0.5:
         move_sequence = get_random_line(repertoire_white)
@@ -150,6 +183,22 @@ def get_move_sequence():
             'move_sequence': move_sequence,
             'breakpoint': random.randint(1, len(move_sequence) // 2)
         })
+
+
+@app.route('/get_next_moves', methods=['POST'])
+def get_next_moves():
+
+    global repertoire_black, repertoire_white
+
+    data = request.json
+    assert data and 'moves' in data and 'color' in data
+
+    moves = data['moves']
+    color = data['color']
+
+    next_moves = get_next_move(moves, color)
+
+    return jsonify({ 'status': 200, 'moves': next_moves })
 
 
 if __name__ == '__main__':
