@@ -31,10 +31,12 @@ def save_repertoire(data, color):
         json.dump(data, f, indent=4)
 
 
-# Initialize global variable immediately
+# Initialize global variables immediately
 repertoire_white = load_repertoire('white')
 repertoire_black = load_repertoire('black')
 last_load = time.time()
+
+lines_already_sent = set()
 
 
 def add_line_to_repertoire(move_list: list, color: str = 'white'):
@@ -58,7 +60,7 @@ def add_line_to_repertoire(move_list: list, color: str = 'white'):
         current_node = current_node[move]
 
 
-def get_random_line(tree_node):
+def get_random_line(tree_node) -> list[str]:
     """
     Walks from the root of the tree to a leaf node by choosing
     random branches at every step.
@@ -102,6 +104,43 @@ def get_next_move(moves: str, color: str):
             break
 
     return list(current_node.keys())
+
+
+def replace_subtree_in_repertoire(move_list: list, color: str = 'white'):
+
+    if color == 'white':
+        current_node = repertoire_white
+    elif color == 'black':
+        current_node = repertoire_black
+
+    for i, move in enumerate(move_list):
+
+        if not move: 
+            continue
+
+        # In White Repertoire: Indices 0, 2, 4... (White's moves)
+        # In Black Repertoire: Indices 1, 3, 5... (Black's moves)
+        is_white_turn_in_game = (i % 2 == 0)
+        
+        if color == 'white':
+            is_user_move = is_white_turn_in_game
+        else:
+            is_user_move = not is_white_turn_in_game
+
+        # LOGIC: If it is User turn, they must only have ONE choice.
+        if is_user_move:
+
+            # If the repertoire already has a move here, and it is NOT the one I am playing now:
+            # We must DELETE the old move (and its entire subtree) to replace it.
+            if current_node and move not in current_node:
+                current_node.clear()
+
+        # LOGIC: If it is OPPONENT'S turn, they can have many moves.
+        # We just add this one to the list of possibilities without deleting siblings.
+        if move not in current_node:
+            current_node[move] = {}
+        
+        current_node = current_node[move]
 
 
 # Routes
@@ -165,24 +204,41 @@ def get_move_sequence():
         repertoire_black = load_repertoire('black')
         last_load = time.time()
 
-    if random.random() < 0.5:
-        move_sequence = get_random_line(repertoire_white)
+        print("Repertoires reloaded from disk.")
 
-        return jsonify({
-            'status': 200,
-            'color': 'white',
-            'move_sequence': move_sequence,
-            'breakpoint': random.randint(2, len(move_sequence) // 2 + 1)
-        })
+    counter = 0
+    while True:
 
-    else:
-        move_sequence = get_random_line(repertoire_black)
-        return jsonify({
-            'status': 200,
-            'color': 'black',
-            'move_sequence': move_sequence,
-            'breakpoint': random.randint(1, len(move_sequence) // 2)
-        })
+        counter += 1
+
+        if random.random() < 0.5:
+
+            move_sequence = get_random_line(repertoire_white)
+            color = 'white'
+            breakpoint = random.randint(2, len(move_sequence) // 2 + 1)
+            
+        else:
+
+            move_sequence = get_random_line(repertoire_black)
+            color = 'black'
+            breakpoint = random.randint(1, len(move_sequence) // 2)
+
+        if str(move_sequence) not in lines_already_sent:
+            lines_already_sent.add(str(move_sequence))
+            
+            return jsonify({
+                'status': 200,
+                'color': color,
+                'move_sequence': move_sequence,
+                'breakpoint': breakpoint
+            })
+
+        if counter == 200:
+            
+            return jsonify({
+                'status': 500,
+                'message': 'All lines quizzed.'
+            })
 
 
 @app.route('/get_next_moves', methods=['POST'])
@@ -199,6 +255,36 @@ def get_next_moves():
     next_moves = get_next_move(moves, color)
 
     return jsonify({ 'status': 200, 'moves': next_moves })
+
+
+@app.route('/update_subtree', methods=['POST'])
+def update_subtree():
+    
+    data = request.json
+    
+    if not data or 'move sequence' not in data:
+        return jsonify({
+            'status': 400, 
+            'message': 'No line provided'
+        })
+
+    raw_line = data.get('line', '').split(' ')
+    color = data.get('color', 'white').lower()
+
+    # Perform the update (Prune & Graft)
+    replace_subtree_in_repertoire(raw_line, color)
+
+    # Save immediately
+    if color == 'white':
+        save_repertoire(repertoire_white, 'white')
+    elif color == 'black':
+        save_repertoire(repertoire_black, 'black')
+
+    return jsonify({ 
+        'status': 200, 
+        'message': 'Subtree updated successfully',
+        'line': ' '.join([m for m in raw_line if m])
+    })
 
 
 if __name__ == '__main__':

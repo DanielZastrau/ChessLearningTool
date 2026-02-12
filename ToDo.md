@@ -1,2 +1,2 @@
-* also implement an explore mode, where you can go down a sequence of moves and at each turn it shows you all the opponent moves you have seen
 * implement a delete function
+* I also should implement a change function, which gets a move sequence and a color, and then the first move of the specified color, which is not in the repertoire, deletes the entire subtree that is present and sets a new node.

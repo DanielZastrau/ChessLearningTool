@@ -27,6 +27,9 @@ function setMode(newMode) {
         subtitle.innerHTML = 'Explorer'
 
         content = setExplorerMode()
+    } else if (newMode === 'update') {
+        subtitle.innerHTML = 'Update Repertoire'
+        content = setUpdateMode()
     }
 
     mca.replaceChildren(subtitle, content)
@@ -191,6 +194,55 @@ function setExplorerMode() {
 }
 
 
+function setUpdateMode() {
+
+    const content = document.createElement("div")
+    content.setAttribute('class', 'content')
+
+
+    const inputRow = document.createElement('div')
+    inputRow.setAttribute('class', 'input-row')
+
+    const input = document.createElement('input')
+    input.setAttribute('class', 'input')
+    input.addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            document.querySelector(".update-button").click();
+        }
+    });
+    input.placeholder = 'Enter new line (will overwrite conflicts)'
+
+
+    const colorSelector = document.createElement('select')
+    colorSelector.setAttribute('class', 'selector')
+    
+    const optionWhite = document.createElement('option')
+    optionWhite.setAttribute('value', 'White')
+    optionWhite.innerHTML = 'White'
+    
+    const optionBlack = document.createElement('option')
+    optionBlack.setAttribute('value', 'Black')
+    optionBlack.innerHTML = 'Black'
+    
+    colorSelector.replaceChildren(optionWhite, optionBlack)
+
+
+    const button = document.createElement('button')
+    button.setAttribute('class', 'update-button')
+    button.addEventListener('click', updateSubtree)
+    button.innerHTML = 'Update Subtree'
+
+    inputRow.replaceChildren(input, colorSelector, button)
+
+
+    content.replaceChildren(inputRow)
+
+
+    return content
+}
+
+
 // Communicate with Server
 
 
@@ -244,6 +296,22 @@ async function getNextMoves(moves, color) {
     } catch (error) {
         console.log('Error while exploring moves:', error)
         
+        return null
+    }
+}
+
+
+async function sendUpdateSubtree(moves, color) {
+    try {
+        const response = await $.ajax({
+            url: '/update_subtree',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ 'move sequence': moves, 'color': color })
+        })
+        return response
+    } catch (error) {
+        console.log('Error updating subtree:', error)
         return null
     }
 }
@@ -374,6 +442,7 @@ async function checkMove() {
     }
 }
 
+
 async function exploreMoves() {
     
     const moves = document.querySelector('.input').value
@@ -390,4 +459,36 @@ async function exploreMoves() {
         console.log('Error')
     }
 
+}
+
+
+async function updateSubtree() {
+    // 1. Get the values
+    const input = document.querySelector(".input");
+    const inputVal = input.value;
+    const color = document.querySelector('.selector').value
+    const content = document.querySelector(".content");
+
+    // 2. Clear previous messages
+    const existingStatus = document.querySelector(".status-message");
+    if (existingStatus) existingStatus.remove();
+
+    const statusDiv = document.createElement("div");
+    statusDiv.setAttribute('class', 'status-message');
+
+    // 3. Send to backend
+    const response = await sendUpdateSubtree(inputVal, color)
+
+    // 4. Handle Response
+    if (response && response.status === 200) {
+        statusDiv.innerText = "Subtree updated: " + response.line;
+        statusDiv.style.color = "#00FF00"; // Green
+
+        input.value = '' // Clear input on success
+        content.appendChild(statusDiv)
+    } else {
+        statusDiv.innerText = "Error while updating subtree";
+        statusDiv.style.color = "#FF0000"; // Red
+        content.appendChild(statusDiv);
+    }
 }

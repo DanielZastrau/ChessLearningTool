@@ -115,7 +115,7 @@ body, html {
     border-radius: 15px;
 }
 
-.save-button, .check-button, .explore-button {
+.save-button, .check-button, .explore-button, .update-button {
     flex: 1;
 
     height: 25px;
