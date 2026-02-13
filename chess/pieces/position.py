@@ -13,6 +13,10 @@ class Position():
         return values[self.file]
 
 
+    def is_on_board(self):
+        return 1 <= self.get_value_of_file() <= 8 and 1 <= self.rank <= 8
+
+
     def __eq__(self, position) -> bool:
         return self.file == position.file and self.rank == position.rank
 
