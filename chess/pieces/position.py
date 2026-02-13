@@ -13,5 +13,9 @@ class Position():
         return values[self.file]
 
 
+    def __eq__(self, position) -> bool:
+        return self.file == position.file and self.rank == position.rank
+
+
     def __repr__(self) -> str:
         return f'{self.file}{self.rank}'
