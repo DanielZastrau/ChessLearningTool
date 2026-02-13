@@ -113,6 +113,8 @@ def replace_subtree_in_repertoire(move_list: list, color: str = 'white'):
     elif color == 'black':
         current_node = repertoire_black
 
+    print(f"Starting subtree replacement for color {color} with move list: {' '.join(move_list)}")
+
     for i, move in enumerate(move_list):
 
         if not move: 
@@ -268,8 +270,12 @@ def update_subtree():
             'message': 'No line provided'
         })
 
-    raw_line = data.get('line', '').split(' ')
+    print("Received request to update subtree with data:", data)
+
+    raw_line = data.get('move sequence', '').split(' ')
     color = data.get('color', 'white').lower()
+
+    print(f"Received subtree update for color {color} with line: {' '.join(raw_line)}")
 
     # Perform the update (Prune & Graft)
     replace_subtree_in_repertoire(raw_line, color)
@@ -279,6 +285,7 @@ def update_subtree():
         save_repertoire(repertoire_white, 'white')
     elif color == 'black':
         save_repertoire(repertoire_black, 'black')
+    print("Subtree updated and saved to disk.")
 
     return jsonify({ 
         'status': 200, 

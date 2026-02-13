@@ -463,11 +463,14 @@ async function exploreMoves() {
 
 
 async function updateSubtree() {
+
     // 1. Get the values
     const input = document.querySelector(".input");
     const inputVal = input.value;
     const color = document.querySelector('.selector').value
     const content = document.querySelector(".content");
+
+    console.log("Updating subtree with line:", inputVal, "for color:", color)
 
     // 2. Clear previous messages
     const existingStatus = document.querySelector(".status-message");
